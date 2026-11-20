@@ -101,36 +101,13 @@ function fast(){return score>=8&&score%5===0}
 function speed(){var s=mode==='imp'?Math.min(3.4+score*.2,12):Math.min(2.2+score*.14,8.5);if(mode==='daily')s*=dm[score%200];if(fast())s*=1.4;if(slowT>0){slowT--;s*=.4}return s}
 function extra(){return(mode==='daily'?'  \u2022  Daily':mode==='imp'?'  \u2022  Impossible':'')+(target?'  \u2022  Target '+target:'')}
 var tt;function toast(m){var e=$('toast');e.textContent=m;e.style.opacity=1;clearTimeout(tt);tt=setTimeout(function(){e.style.opacity=0},2800)}
-
-/* ADS: Monetag Vignette (zone 12308196) triggered safely on session break (every 3rd game over) */
-var adPause=false,adMute=false,lastVignetteAt=0;
+/* ADS: auto-detects the CrazyGames or GameDistribution SDK if its <script> tag is added to this page (copy the tag from the portal docs).
+   With no SDK present, a 3-second placeholder ad is used for testing. The game pauses and mutes while any ad plays. */
+var adPause=false,adMute=false;
 function adStart(){adPause=true;adMute=true;try{if(AC&&AC.suspend)AC.suspend()}catch(e){}}
 function adEnd(){adPause=false;adMute=false;try{if(AC&&AC.resume)AC.resume()}catch(e){}}
 function cgs(){return window.CrazyGames&&window.CrazyGames.SDK}
 function gp(on){try{var S=cgs();if(S&&S.game)on?S.game.gameplayStart():S.game.gameplayStop()}catch(e){}}
-
-function triggerMonetagVignette(){
-  var now=Date.now();
-  // Safe frequency cap: every 3rd game over and at least 25s cooldown between vignette loads
-  if(overs%3!==0||(now-lastVignetteAt)<25000)return;
-  lastVignetteAt=now;
-  adStart();
-  try{
-    var s=document.createElement('script');
-    s.dataset.zone='12308196';
-    s.src='https://n6wxm.com/vignette.min.js';
-    s.async=true;
-    s.onload=function(){setTimeout(adEnd,1200)};
-    s.onerror=function(){adEnd()};
-    var targetEl=[document.documentElement,document.body].filter(Boolean).pop();
-    if(targetEl)targetEl.appendChild(s);
-    else adEnd();
-    setTimeout(adEnd,5000);
-  }catch(e){
-    adEnd();
-  }
-}
-
 var ADS={
   rewarded:function(cb){
     var S=cgs(),noAd=function(){adEnd();toast('No ad available right now. Try again later.')};
@@ -154,7 +131,7 @@ function unlockCheck(){if(skin===unl-1&&unl<SK.length&&score>=10+2*skin){unl++;s
 function setSkin(k){skin=k;sv('tsSkin2',k);toast('🎨 '+SK[k][0])}
 function buildSk(){var g=$('spg');g.textContent='';SK.forEach(function(q,k){var b=document.createElement('button'),sw=document.createElement('div'),nm=document.createElement('div'),st=document.createElement('div');
   b.className='sc'+(k===skin?' sel':'');sw=document.createElement('canvas');sw.width=120;sw.height=96;sw.className='pv';drawPrev(sw,k);
-  nm.textContent=q[0];nm.className='nm';st.textContent=k===skin?'✓ Equipped':unlocked(k)?'Equip':k===unl?'🔒 Stack '+(10+2*(k-1))+' on '+SK[k-1][0]:'🔒 Locked';
+  nm.textContent=q[0];nm.className='nm';st.className='st';st.textContent=k===skin?'✓ Equipped':unlocked(k)?'Equip':k===unl?'🔒 Stack '+(10+2*(k-1))+' on '+SK[k-1][0]:'🔒 Locked';
   b.appendChild(sw);b.appendChild(nm);b.appendChild(st);b.onclick=function(){pick(k)};g.appendChild(b)})}
 function drawPrev(cv,k){var g=cv.getContext('2d'),w=cv.width,h=cv.height,q=SK[k],n=q[0],dk=theme==='dark',bc=BG[n],gr=g.createLinearGradient(0,0,0,h),m,a;
   if(bc){gr.addColorStop(0,dk?bc[2]:bc[0]);gr.addColorStop(1,dk?bc[3]:bc[1])}else{gr.addColorStop(0,'hsl(250,'+(dk?'55%,24%':'85%,82%')+')');gr.addColorStop(1,'hsl(300,'+(dk?'60%,8%':'85%,94%')+')')}
@@ -213,8 +190,8 @@ updSlow();
 function setMode(m){mode=m;reset()}
 $('m_classic').onclick=function(){setMode('classic')};$('m_daily').onclick=function(){setMode('daily')};$('m_imp').onclick=function(){setMode('imp')};
 $('bc').onclick=function(){ADS.rewarded(function(){used=1;over=false;gp(true);falls=[];cur={x:0,w:blocks[blocks.length-1].w,dir:1};sig=''})};
-function updBar(){var s=over?'o':score===0?'s':'p';if(s===sig)return;sig=s;$('bar').hidden=s==='p';
-                  function onOver(){overs++;check();gp(false);triggerMonetagVignette()}
+function updBar(){var s=over?'o':score===0?'s':'p';if(s===sig)return;sig=s;$('bar').hidden=s==='p';$('bc').hidden=!(s==='o'&&!used&&score>=3);['classic','daily','imp'].forEach(function(m){$('m_'+m).className=mode===m?'on':''})}
+function onOver(){overs++;check();gp(false)}
 
 /* game */
 var blocks,cur,score,camY,over,overAt,best=+ld('tsBest',0),combo,falls,parts,shake,perfT;
@@ -352,4 +329,3 @@ frame();
 </script>
 </body>
 </html>
-
