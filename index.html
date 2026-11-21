@@ -269,11 +269,12 @@ function tap(){
 document.addEventListener('pointerdown',function(e){if(!e.target.closest('button,#lb,#sp,#ap,#np,#ad'))tap()});
 document.addEventListener('keydown',function(e){if(e.code==='Space'){e.preventDefault();tap()}});
 $('share').onclick=function(){
-  var t='I stacked '+score+' floors in Tower Stack! Can you beat me?';
+  var LINK='https://badboy786ai.github.io/Tower-Stack/';
+  var t='I stacked '+score+' floors in Tower Stack! Can you beat me? Play here: '+LINK;
   c.toBlob(function(b){
-    try{var f=new File([b],'tower-stack.png',{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],text:t}).catch(function(){});return}}catch(e){}
-    if(navigator.share){navigator.share({text:t}).catch(function(){})}
-    else if(navigator.clipboard){navigator.clipboard.writeText(t).then(function(){toast('Score copied!')}).catch(function(){})}
+    try{var f=new File([b],'tower-stack.png',{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],text:t,url:LINK}).catch(function(){});return}}catch(e){}
+    if(navigator.share){navigator.share({text:t,url:LINK}).catch(function(){})}
+    else if(navigator.clipboard){navigator.clipboard.writeText(t).then(function(){toast('Score + link copied!')}).catch(function(){})}
   });
 };
 
