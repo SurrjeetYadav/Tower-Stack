@@ -55,6 +55,15 @@ button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
 #nps,#npcx{margin-top:10px;width:100%;border:0;border-radius:14px;padding:8px;font:700 15px 'Baloo 2',sans-serif;cursor:pointer}
 #nps{background:var(--acc);color:#fff}
 #npcx{background:var(--card);color:var(--fg)}
+#shp{position:fixed;inset:0;z-index:8;background:#0009;display:flex;align-items:center;justify-content:center}
+#shpc{background:var(--bg);color:var(--fg);border-radius:22px;padding:16px;width:min(90vw,360px);box-sizing:border-box;max-height:92vh;overflow:auto}
+#shpc h3{margin:0 0 10px;font:22px 'Lilita One','Baloo 2',sans-serif}
+#shi{display:block;width:100%;max-height:38vh;object-fit:contain;border-radius:14px;background:#0002}
+#sht{margin:10px 0;font:600 14px 'Baloo 2',sans-serif;line-height:1.4;overflow-wrap:anywhere}
+#shpc button{margin-top:8px;width:100%;border:0;border-radius:14px;padding:9px;font:700 15px 'Baloo 2',sans-serif;cursor:pointer}
+#shs{background:var(--acc);color:#fff}
+#shd,#shc{background:var(--card);color:var(--fg)}
+#shx{background:transparent;color:var(--fg)}
 </style>
 </head>
 <body>
@@ -76,6 +85,7 @@ button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
 <div id="sp" hidden><div id="spc"><h3>Skins</h3><div id="spg"></div><button id="spx">Close</button></div></div>
 <div id="ap" hidden><div id="apc"><h3>Achievements</h3><div id="apg"></div><button id="apx">Close</button></div></div>
 <div id="np" hidden><div id="npc"><h3>Leaderboard name</h3><input id="npi" maxlength="16" placeholder="Your name" autocomplete="off"><button id="nps">Save score</button><button id="npcx">Cancel</button></div></div>
+<div id="shp" hidden><div id="shpc"><h3>Share your score</h3><img id="shi" alt="Screenshot of your Tower Stack game"><p id="sht"></p><button id="shs">📤 Share screenshot + link</button><button id="shd">⬇️ Save screenshot</button><button id="shc">📋 Copy score + game link</button><button id="shx">Close</button></div></div>
 <div id="ad" hidden><div id="adt"></div></div>
 <script>
 var DB_URL='https://tower-stack-c2340-default-rtdb.asia-southeast1.firebasedatabase.app';
@@ -266,17 +276,29 @@ function tap(){
   if(score>best){best=score;sv('tsBest',best)}
   var nw=shield>0?Math.min(nb.w*1.3,W):nb.w;cur=mk(cur.dir>0?W-nw:0,nw,-cur.dir,shield>0);
 }
-document.addEventListener('pointerdown',function(e){if(!e.target.closest('button,#lb,#sp,#ap,#np,#ad'))tap()});
+document.addEventListener('pointerdown',function(e){if(!e.target.closest('button,#lb,#sp,#ap,#np,#shp,#ad'))tap()});
 document.addEventListener('keydown',function(e){if(e.code==='Space'){e.preventDefault();tap()}});
+var LINK='https://badboy786ai.github.io/Tower-Stack/',shareBlob=null,shareURL='';
+function shareText(){return 'I stacked '+score+' floors in Tower Stack! Can you beat me? Play here: '+LINK}
+function legacyCopy(t){var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}ta.remove()}
+function copyMsg(){var t=shareText();function done(){toast('Score + game link copied!')}
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done).catch(function(){legacyCopy(t);done()});
+  else{legacyCopy(t);done()}}
 $('share').onclick=function(){
-  var LINK='https://badboy786ai.github.io/Tower-Stack/';
-  var t='I stacked '+score+' floors in Tower Stack! Can you beat me? Play here: '+LINK;
-  c.toBlob(function(b){
-    try{var f=new File([b],'tower-stack.png',{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],text:t,url:LINK}).catch(function(){});return}}catch(e){}
-    if(navigator.share){navigator.share({text:t,url:LINK}).catch(function(){})}
-    else if(navigator.clipboard){navigator.clipboard.writeText(t).then(function(){toast('Score + link copied!')}).catch(function(){})}
-  });
+  $('sht').textContent=shareText();
+  shareBlob=null;if(shareURL){URL.revokeObjectURL(shareURL);shareURL=''}
+  c.toBlob(function(b){if(b){shareBlob=b;shareURL=URL.createObjectURL(b);$('shi').src=shareURL}});
+  $('shp').hidden=false;
 };
+$('shs').onclick=function(){
+  var t=shareText();
+  if(shareBlob){try{var f=new File([shareBlob],'tower-stack.png',{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],text:t,url:LINK}).catch(function(){});return}}catch(e){}}
+  if(navigator.share)navigator.share({text:t,url:LINK}).catch(function(){});
+  else copyMsg();
+};
+$('shd').onclick=function(){if(!shareURL){toast('Screenshot is not ready yet — try again');return}var a=document.createElement('a');a.href=shareURL;a.download='tower-stack.png';document.body.appendChild(a);a.click();a.remove();toast('Screenshot saved — attach it when you share')};
+$('shc').onclick=function(){copyMsg()};
+$('shx').onclick=function(){$('shp').hidden=true};
 
 /* leaderboard (Firebase Realtime Database via REST) */
 var myId=ld('tsId','');
