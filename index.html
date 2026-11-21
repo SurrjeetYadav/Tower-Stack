@@ -278,7 +278,7 @@ function tap(){
 }
 document.addEventListener('pointerdown',function(e){if(!e.target.closest('button,#lb,#sp,#ap,#np,#shp,#ad'))tap()});
 document.addEventListener('keydown',function(e){if(e.code==='Space'){e.preventDefault();tap()}});
-var LINK='https://badboy786ai.github.io/Tower-Stack/',shareBlob=null,shareURL='';
+var LINK='https://SurrjeetYadav.github.io/Tower-Stack/',shareBlob=null,shareURL='';
 function shareText(){return 'I stacked '+score+' floors in Tower Stack! Can you beat me? Play here: '+LINK}
 function legacyCopy(t){var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}ta.remove()}
 function copyMsg(){var t=shareText();function done(){toast('Score + game link copied!')}
